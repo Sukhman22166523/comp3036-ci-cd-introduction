@@ -6,24 +6,54 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  COURSE: full-stack-development-comp3036-city-2026
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "20"
-      - name: Install PNPM 📦
+
+      - name: Install PNPM
         uses: pnpm/action-setup@v4
         with:
           version: 10.4.1
-      - name: Install Dependencies 🔧
+
+      - name: Install Dependencies
         run: pnpm install
-      - name: Run Linting 🧠
+
+      - name: Run Linting
         run: pnpm lint
-      - name: Run Tests 🧪
+
+      - name: Run Tests
         run: pnpm test
-      - name: Build Project 🏗️
+
+      - name: Test Application
+        id: npm1
+        uses: WesternSydneyUniversity/autograding-command-grader@v3
+        continue-on-error: true
+        with:
+          working-directory: .
+          test-name: Exercise Test
+          courseId: ${{env.COURSE}}
+          sectionId: exercise-ci-cd-in-ci-cd-and-devops
+          command: pnpm test
+          timeout: 10
+          max-score: 1
+
+      - name: Autograding Reporter
+        uses: education/autograding-grading-reporter@v1
+        env:
+          NPM1_RESULTS: "${{steps.npm1.outputs.result}}"
+        with:
+          runners: npm1
+
+      - name: Build Project
         run: pnpm build
